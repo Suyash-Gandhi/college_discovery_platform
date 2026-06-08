@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  password      String?
+  image         String?
+  createdAt     DateTime       @default(now())
+  savedColleges SavedCollege[]
+  reviews       Review[]
+}
+
+model College {
+  id               String         @id @default(cuid())
+  name             String
+  slug             String         @unique
+  location         String
+  city             String
+  state            String
+  description      String
+  imageUrl         String?
+  totalFee         Int
+  rating           Float
+  establishedYear  Int
+  type             CollegeType    @default(PRIVATE)
+  affiliatedTo     String?
+  placementPercent Float
+  avgPackage       Int
+  highestPackage   Int
+  createdAt        DateTime       @default(now())
+  courses          Course[]
+  reviews          Review[]
+  savedBy          SavedCollege[]
+}
+
+model Course {
+  id        String  @id @default(cuid())
+  name      String
+  duration  Int
+  fee       Int
+  seats     Int
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collegeId String
+  college   College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, collegeId])
+}
+
+model SavedCollege {
+  id        String   @id @default(cuid())
+  savedAt   DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collegeId String
+  college   College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, collegeId])
+}
+
+enum CollegeType {
+  GOVERNMENT
+  PRIVATE
+  DEEMED
+  AUTONOMOUS
+}
